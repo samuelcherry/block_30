@@ -1,45 +1,41 @@
-import React from "react";
-import { useParams, Link } from "react-router-dom";
-import { useState, useEffect } from "react";
-import fetchAllPlayers from "../API/apiCall";
+import { useLocation, Link } from "react-router-dom";
+import { useState } from "react";
+import { rentBookApi } from "../API/apiCall";
 
-const SingleBook = () => {
-  const [books, setBooks] = useState([]);
-  const [loading, setLoading] = useState(true);
+export default function SingleBook() {
+  const locationInfo = useLocation();
+  const book = locationInfo.state.book;
+  const { title, author, description, coverimage, id } = book;
+  const [available, setAvailable] = useState(book.available);
+  const [userKey, setUserKey] = useState(() =>
+    localStorage.getItem("current-user-key")
+  );
 
-  useEffect(() => {
-    const fetchBooks = async () => {
-      try {
-        const result = await fetchAllPlayers();
-        setBooks(result || []);
-      } catch (error) {
-        console.error("Error fetching books:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchBooks();
-  }, []);
-
-  const { id } = useParams();
-  console.log("Received ID:", id);
-  const book = books.find((b) => b.id === parseInt(id));
-  console.log(book);
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
-  if (!book) {
-    return <div>Book not found</div>; // Handle the case where book is not found
+  async function rentBook() {
+    const response = await rentBookApi(userKey, id);
+    setAvailable(false);
   }
 
   return (
     <div className="bookCard">
-      <div>{book.title}</div>
-      <div>{book.author}</div>
-      <div>{book.description}</div>
+      <div className="info">
+        <h2>{title}</h2>
+        <h4>{author}</h4>
+        <p>{description}</p>
+
+        {available && userKey ? (
+          <button onClick={rentBook}>Checkout</button>
+        ) : !available && userKey ? (
+          <h4>Already Checked OUt</h4>
+        ) : (
+          <h4>
+            <Link to="/account">Log In or Register</Link>
+          </h4>
+        )}
+      </div>
+      <div className="book-cover">
+        <img src={coverimage} alt={`Cover of ${title}`} />
+      </div>
     </div>
   );
-};
-
-export default SingleBook;
+}

@@ -1,7 +1,14 @@
-import React from "react";
+import BookPreview from "./BookPreview";
 
-const Books = () => {
-  return <div>Books</div>;
-};
-
-export default Books;
+export default function Books({ books }) {
+  return (
+    <div>
+      <h2>Books</h2>
+      <ul>
+        {books.map((book, index) => (
+          <BookPreview book={book} key={index} />
+        ))}
+      </ul>
+    </div>
+  );
+}
